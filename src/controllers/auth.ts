@@ -1,6 +1,6 @@
 import express from 'express'
 
-import { existsByEmail, createClient, getClientByEmail, getClientBySessionTokenAndId } from '../database/Schemas/Client'
+import { existsByEmail, createClient, getClientByEmail } from '../database/Schemas/Client'
 
 import { validatePassword, emailValidator } from '../helpers/validators'
 import { authentication, random } from '../helpers/auth'
@@ -89,20 +89,13 @@ export const login = async (req: express.Request, res: express.Response) => {
 }
 
 export const logout = async (req: express.Request, res: express.Response) => {
-    const token: IJWT = res.locals.token;
-
-    const client = await getClientBySessionTokenAndId(token.sessionToken, token.id)
-    if (!client) {
-        return res.status(400).json({ error: "Client not found!" })
-    }
-
     deleteJWTCookie(res)
     return res.status(200).json({ message: "Logged out successfully!" })
 }
 
 export const verify = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-
+    const client = res.locals.client;
     
     if (!token) {
         return res.status(400).json({ error: "Token is required!" })
@@ -114,11 +107,6 @@ export const verify = async (req: express.Request, res: express.Response) => {
     
     if (token.role !== "client") {
         return res.status(400).json({ error: "Unauthorized!" })
-    }
-    
-    const client = await getClientBySessionTokenAndId(token.sessionToken, token.id)
-    if (!client) {
-        return res.status(400).json({ error: "Client not found!" })
     }
     
     if ('spotifyToken' in token && token.spotifyToken.access_token) {

@@ -5,11 +5,7 @@ import { generateJWTCookie, IJWT } from '../helpers/JWT';
 
 export const saveSpotifyToken = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-
-    const client = await getClientBySessionTokenAndId(token.sessionToken, token.id)
-    if (!client) {
-        return res.status(400).json({ error: "Client not found!" })
-    }
+    const client = res.locals.client;
 
     client.spotify.auth = res.locals.token.spotifyToken
     const savedClient = await client.save()
@@ -22,11 +18,7 @@ export const saveSpotifyToken = async (req: express.Request, res: express.Respon
 
 export const disconnectSpotify = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-
-    const client = await getClientBySessionTokenAndId(token.sessionToken, token.id);
-    if (!client) {
-        return res.status(400).json({error: "Client not found."});
-    }
+    const client = res.locals.client;
 
     try {
         const updateResult = await ClientModel.findByIdAndUpdate(
