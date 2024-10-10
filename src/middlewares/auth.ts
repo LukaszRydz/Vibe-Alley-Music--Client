@@ -8,11 +8,6 @@ export const isAuthorized = async (req: express.Request, res: express.Response, 
     try {
         // ! Remember before using this middleware, you need to use verifyJWT middleware first!
         const token: IJWT = res.locals.token;
-
-        if (!token) {
-            return res.status(401).json({error: "Token not found!"})
-        }
-    
         if (!token.sessionToken || !token.id) {
             return res.status(401).json({error: "Invalid token."})
         }

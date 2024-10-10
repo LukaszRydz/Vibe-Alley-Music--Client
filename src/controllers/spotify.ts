@@ -22,9 +22,6 @@ export const saveSpotifyToken = async (req: express.Request, res: express.Respon
 
 export const disconnectSpotify = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-    if (!token) {
-        return res.status(401).json({error: "Unauthorized."});
-    }
 
     const client = await getClientBySessionTokenAndId(token.sessionToken, token.id);
     if (!client) {

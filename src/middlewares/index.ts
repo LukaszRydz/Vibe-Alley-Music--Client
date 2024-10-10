@@ -11,10 +11,16 @@ const logRequest = (req: express.Request, res: express.Response, next: express.N
     next()
 }
 
+const customHeaders = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    res.header('Access-Control-Expose-Headers', 'music-store-cookie_deleted');
+    next()
+}
+
 const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8050'];
 
 // Global middlewares
 export const initMiddlewares = (app: express.Application) => {
+    app.use(customHeaders)
     app.use(helmet())
     app.use(cors({ 
         credentials: true,
@@ -24,4 +30,4 @@ export const initMiddlewares = (app: express.Application) => {
     app.use(cookieParser())
     app.use(compression())
     app.use(logRequest)
-}    
+}

@@ -10,9 +10,6 @@ import { JWT } from "../helpers/variables";
 
 export const getAccount = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized." });
-    }
 
     try {
         const user = await getClientBySessionTokenAndId(token.sessionToken, token.id);
@@ -58,9 +55,6 @@ export const getAccount = async (req: express.Request, res: express.Response) =>
 
 export const changePassword = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized." });
-    }
 
     const { oldPassword, newPassword, cNewPassword } = req.body;
 
@@ -100,9 +94,6 @@ export const changePassword = async (req: express.Request, res: express.Response
 
 export const addProductToCart = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized." });
-    }
 
     const { id, quantity } = req.body;
     if (!id || !quantity) {
@@ -131,9 +122,6 @@ export const addProductToCart = async (req: express.Request, res: express.Respon
 
 export const updateProductInCart = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized." });
-    }
 
     const { id, quantity } = req.body;
     if (!id || !quantity) {
@@ -162,9 +150,6 @@ export const updateProductInCart = async (req: express.Request, res: express.Res
 
 export const removeProductFromCart = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-    if (!token) {
-        return res.status(401).json({ error: "Unauthorized." });
-    }
 
     const { id } = req.query;
     if (!id) {

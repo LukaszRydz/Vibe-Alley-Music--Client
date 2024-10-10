@@ -1,7 +1,7 @@
 import express from 'express';
 
 import { register, login, verify, logout } from '../controllers/auth';
-import { verifyJWT } from '../middlewares/verifyJWT';
+import { verifyJWT } from '../middlewares/JWT';
 import { isAuthorized } from '../middlewares/auth';
 
 export default (router: express.Router) => {

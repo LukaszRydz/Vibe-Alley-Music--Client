@@ -2,7 +2,7 @@ import express from 'express';
 
 import { addProductToCart, changePassword, getAccount, removeProductFromCart, updateProductInCart } from '../controllers/account';
 
-import { verifyJWT } from '../middlewares/verifyJWT';
+import { verifyJWT } from '../middlewares/JWT';
 import { isAuthorized } from '../middlewares/auth';
 
 export default (router: express.Router) => {

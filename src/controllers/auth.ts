@@ -10,7 +10,7 @@ export const register = async (req: express.Request, res: express.Response) => {
     const { email, password, cpassword } : IRegister = req.body
 
     if (!email || !password || !cpassword) {
-        return res.status(400).send('Please fill all fields')
+        return res.status(400).json({ error: "Please fill all fields!" })
     }
 
     if (!validatePassword(password, cpassword)) {
@@ -49,8 +49,9 @@ export const register = async (req: express.Request, res: express.Response) => {
 export const login = async (req: express.Request, res: express.Response) => {
     const { email, password } : ILogin = req.body
 
+    console.log(email, password);
     if (!email || !password) {
-        return res.status(400).send('Please fill all fields')
+        return res.status(400).json({ error: "Please fill all fields!" })
     }
 
     if (!emailValidator(email)) {
@@ -89,14 +90,6 @@ export const login = async (req: express.Request, res: express.Response) => {
 
 export const logout = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
-
-    if (!token) {
-        return res.status(400).json({ error: "Token is required!" })
-    }
-
-    if (!token.sessionToken || !token.id) {
-        return res.status(400).json({ error: "Invalid token!" })
-    }
 
     const client = await getClientBySessionTokenAndId(token.sessionToken, token.id)
     if (!client) {
