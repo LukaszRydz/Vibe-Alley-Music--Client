@@ -4,7 +4,7 @@ import { existsByEmail, createClient, getClientByEmail, getClientBySessionTokenA
 
 import { validatePassword, emailValidator } from '../helpers/validators'
 import { authentication, random } from '../helpers/auth'
-import { generateJWTCookie, IJWT } from '../helpers/JWT'
+import { deleteJWTCookie, generateJWTCookie, IJWT } from '../helpers/JWT'
 
 export const register = async (req: express.Request, res: express.Response) => {
     const { email, password, cpassword } : IRegister = req.body
@@ -39,7 +39,7 @@ export const register = async (req: express.Request, res: express.Response) => {
             return res.status(500).json({ error: "Internal Server Error!" })
         }
 
-        res.status(201).json({ message: "Client created successfully!" })
+        res.status(201).json(client).end()
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: "Internal Server Error" })
@@ -87,7 +87,7 @@ export const login = async (req: express.Request, res: express.Response) => {
     res.status(200).json(savedClient).end()
 }
 
-export const verify = async (req: express.Request, res: express.Response) => {
+export const logout = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
 
     if (!token) {
@@ -98,21 +98,42 @@ export const verify = async (req: express.Request, res: express.Response) => {
         return res.status(400).json({ error: "Invalid token!" })
     }
 
-    if (token.role !== "client") {
-        return res.status(400).json({ error: "Unauthorized!" })
-    }
-
     const client = await getClientBySessionTokenAndId(token.sessionToken, token.id)
     if (!client) {
         return res.status(400).json({ error: "Client not found!" })
     }
 
-    if (token.spotifyToken.access_token) {
+    deleteJWTCookie(res)
+    return res.status(200).json({ message: "Logged out successfully!" })
+}
+
+export const verify = async (req: express.Request, res: express.Response) => {
+    const token: IJWT = res.locals.token;
+
+    
+    if (!token) {
+        return res.status(400).json({ error: "Token is required!" })
+    }
+    
+    if (!token.sessionToken || !token.id) {
+        return res.status(400).json({ error: "Invalid token!" })
+    }
+    
+    if (token.role !== "client") {
+        return res.status(400).json({ error: "Unauthorized!" })
+    }
+    
+    const client = await getClientBySessionTokenAndId(token.sessionToken, token.id)
+    if (!client) {
+        return res.status(400).json({ error: "Client not found!" })
+    }
+    
+    if ('spotifyToken' in token && token.spotifyToken.access_token) {
         if (token.spotifyToken.access_token !== client.spotify.auth.access_token) {
             return res.status(400).json({ error: "Invalid spotify token!" })
         }
     }
-
+    
     return res.sendStatus(200).end()
 }
 

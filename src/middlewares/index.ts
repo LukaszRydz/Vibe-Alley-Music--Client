@@ -11,10 +11,15 @@ const logRequest = (req: express.Request, res: express.Response, next: express.N
     next()
 }
 
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:8050'];
+
 // Global middlewares
 export const initMiddlewares = (app: express.Application) => {
     app.use(helmet())
-    app.use(cors({ credentials: true, }))
+    app.use(cors({ 
+        credentials: true,
+        origin: allowedOrigins
+    }))
     app.use(bodyParser.json())
     app.use(cookieParser())
     app.use(compression())

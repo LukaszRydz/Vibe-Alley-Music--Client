@@ -62,6 +62,10 @@ export const ClientSchema = new mongoose.Schema(
                 next_refresh: { type: Number },
                 scope: { type: String },
             },
+            favTracks: {
+                titles: { type: [String], default: undefined },
+                next_refresh: { type: Date, default: undefined },
+            },
         },
     },
     {

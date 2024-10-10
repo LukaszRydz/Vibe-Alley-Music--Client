@@ -16,7 +16,8 @@ export class Api {
 export class MongoDB {
     public static readonly COLLECTION = process.env.MONGODB_COLLECTION || error('MONGODB_COLLECTION')
     public static readonly PASSWORD = process.env.MONGODB_PASSWORD || error('MONGODB_PASSWORD')
-    public static readonly URI = `mongodb+srv://lukaszrydzdev:${this.PASSWORD}@client.oosrw.mongodb.net/${this.COLLECTION}?retryWrites=true&w=majority&appName=CLIENT`
+    public static readonly URI = `mongodb://localhost:27017/SHOP`
+    // public static readonly URI = `mongodb+srv://lukaszrydzdev:${this.PASSWORD}@client.oosrw.mongodb.net/${this.COLLECTION}?retryWrites=true&w=majority&appName=CLIENT`
 }
 
 export class JWT {
