@@ -4,18 +4,18 @@ import axios from "axios";
 import { authentication, random } from "../helpers/auth";
 import { validatePassword } from "../helpers/validators";
 import { IJWT } from "../helpers/JWT";
-import { JWT } from "../helpers/variables";
+import { Host, JWT } from "../helpers/variables";
 
 export const getAccount = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
     const client = res.locals.client;
 
+    if ("auth" in client.spotify) {
     try {
-        if ("auth" in client.spotify) {
             const now = Math.floor(Date.now() / 1000);
             if (!client.spotify.favTracks.next_refresh || client.spotify.favTracks.next_refresh.getTime() <= now) {
                 const cookie = req.cookies[JWT.COOKIE_NAME];
-                const spotifyRes = await axios.get("http://localhost:5000/v2/spotify/fav-items", {
+                const spotifyRes = await axios.get(`${Host.SPOTIFY}/spotify/fav-items`, {
                     headers: {
                         Cookie: `${JWT.COOKIE_NAME}=${cookie}`,
                     },
@@ -35,9 +35,9 @@ export const getAccount = async (req: express.Request, res: express.Response) =>
                     return res.status(200).json(updatedUser);
                 }
             }
+        } catch (error) {
+            console.log("Error:", 'The Spotify server is probably down.');
         }
-    } catch (error) {
-        console.log("Error:", error);
     }
 
     return res.status(200).json(client);
@@ -47,11 +47,12 @@ export const changePassword = async (req: express.Request, res: express.Response
     const token: IJWT = res.locals.token;
     const client = res.locals.client;
 
-    const { oldPassword, newPassword, cNewPassword } = req.body;
+    const { newPassword, cNewPassword } = req.body;
 
-    if (!oldPassword || !newPassword || !cNewPassword) {
-        return res.status(400).json({ error: "Missing data in request." });
-    }
+    // ! We using code login, so we don't need to check the old password
+    // if (!oldPassword || !newPassword || !cNewPassword) {
+    //     return res.status(400).json({ error: "Missing data in request." });
+    // }
 
     if (newPassword !== cNewPassword) {
         return res.status(400).json({ error: "The passwords are not the same." });
@@ -61,10 +62,11 @@ export const changePassword = async (req: express.Request, res: express.Response
         return res.status(400).json({ error: "Invalid password." });
     }
 
-    const expectedHash = authentication(client.auth.salt, oldPassword);
-    if (expectedHash !== client.auth.password) {
-        return res.status(400).json({ error: "Invalid password." });
-    }
+    // ! We using code login, so we don't need to check the old password
+    // const expectedHash = authentication(client.auth.salt, oldPassword);
+    // if (expectedHash !== client.auth.password) {
+    //     return res.status(400).json({ error: "Invalid password." });
+    // }
 
     const salt = random({ size: 128 });
     client.auth.salt = salt;
@@ -75,24 +77,29 @@ export const changePassword = async (req: express.Request, res: express.Response
         return res.status(500).json({ error: "Internal server error." });
     }
 
-    return res.status(200).json({ message: "Password changed successfully." });
+    return res.status(200).json({ message: "Password changed successfully.", showSuccess: true });
 };
 
-export const addProductToCart = async (req: express.Request, res: express.Response) => {
-    const token: IJWT = res.locals.token;
+export const addProductsToCart = async (req: express.Request, res: express.Response) => {
     const client = res.locals.client;
 
-    const { id, quantity } = req.body;
-    if (!id || !quantity) {
+    const products = req.body.products;
+    if (!products || !Array.isArray(products) || products.length === 0) {
         return res.status(400).json({ error: "Missing data in request." });
     }
 
-    const product = client.cart.find((p: { id: string, quantity: number }) => p.id === id);
-    if (product) {
-        product.quantity += quantity;
-    } else {
-        client.cart.push({ id, quantity });
-    }
+    products.forEach(({ id, quantity }) => {
+        if (!id || !quantity) {
+            return res.status(400).json({ error: "Missing data in request." });
+        }
+
+        const product = client.cart.find((p: { id: string, quantity: number }) => p.id === id);
+        if (product) {
+            product.quantity += quantity;
+        } else {
+            client.cart.push({ id, quantity });
+        }
+    });
 
     const updatedClient = await client.save();
     if (!updatedClient) {

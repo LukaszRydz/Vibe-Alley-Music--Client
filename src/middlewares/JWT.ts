@@ -24,6 +24,7 @@ export const verifyJWT = (req: express.Request, res: express.Response, next: exp
 
         const decoded = jwt.verify(token, JWT.SECRET);
         if (!decoded) {
+            deleteJWTCookie(res);
             return res.status(401).json({ error: "Unauthorized" });
         }
 

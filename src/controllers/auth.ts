@@ -1,6 +1,6 @@
 import express from 'express'
 
-import { existsByEmail, createClient, getClientByEmail } from '../database/Schemas/Client'
+import { existsByEmail, createClient, getClientByEmail, getClientByEmailAndOneTimeKey } from '../database/Schemas/Client'
 
 import { validatePassword, emailValidator } from '../helpers/validators'
 import { authentication, random } from '../helpers/auth'
@@ -49,7 +49,6 @@ export const register = async (req: express.Request, res: express.Response) => {
 export const login = async (req: express.Request, res: express.Response) => {
     const { email, password } : ILogin = req.body
 
-    console.log(email, password);
     if (!email || !password) {
         return res.status(400).json({ error: "Please fill all fields!" })
     }
@@ -70,6 +69,54 @@ export const login = async (req: express.Request, res: express.Response) => {
 
     const salt = random({ size: 128 })
     client.auth.sessionToken = authentication(salt, client._id.toString())
+
+    const savedClient = await client.save()
+    if (!savedClient) {
+        return res.status(500).json({ error: "Internal Server Error!" })
+    }
+
+    const payload = {
+        sessionToken: savedClient.auth.sessionToken,
+        id: savedClient._id.toString(),
+        role: savedClient.role,
+        spotifyToken: savedClient.spotify.auth || {}
+    }
+
+    generateJWTCookie(res, payload)
+    
+    res.status(200).json(savedClient).end()
+}
+
+export const oneTimeLogin = async (req: express.Request, res: express.Response) => {
+    const { email, key } : { email: string, key: string } = req.body
+
+    if (!email || !key) {
+        return res.status(400).json({ error: "Please fill all fields!" })
+    }
+
+    if (!emailValidator(email)) {
+        return res.status(400).json({ error: "Email is invalid!" })
+    }
+
+    const client = await getClientByEmailAndOneTimeKey(email, key).select('+auth.salt +auth.password +oneTimeLoginKey.key +oneTimeLoginKey.expiresAt')
+    if (!client) {
+        return res.status(400).json({ error: "Client not found or invalid key!" })
+    }
+
+    if (client.oneTimeLoginKey.key !== key) {
+        return res.status(400).json({ error: "Invalid key!" })
+    }
+
+    if (client.oneTimeLoginKey.expiresAt < new Date()) {
+        return res.status(400).json({ error: "Key expired, please request a new one!" })
+    }
+
+    const salt = random({ size: 128 })
+    client.auth.sessionToken = authentication(salt, client._id.toString())
+    client.oneTimeLoginKey = {
+        key: undefined,
+        expiresAt: undefined
+    }
 
     const savedClient = await client.save()
     if (!savedClient) {

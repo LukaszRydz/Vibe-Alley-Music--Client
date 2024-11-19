@@ -1,6 +1,5 @@
 import express from 'express';
 import http from 'http'
-import cookieParser from 'cookie-parser';
 
 import { initMiddlewares } from './middlewares';
 import { initRouter } from './router';

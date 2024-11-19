@@ -2,6 +2,7 @@ import { ClientModel, getClientBySessionTokenAndId } from './../database/Schemas
 import express from 'express';
 
 import { generateJWTCookie, IJWT } from '../helpers/JWT';
+import { Host } from '../helpers/variables';
 
 export const saveSpotifyToken = async (req: express.Request, res: express.Response) => {
     const token: IJWT = res.locals.token;
@@ -13,7 +14,7 @@ export const saveSpotifyToken = async (req: express.Request, res: express.Respon
         return res.status(500).json({ error: "Internal Server Error!" })
     }
 
-    return res.status(200).redirect('http://localhost:5173')
+    return res.status(200).redirect(Host.FRONT)
 }
 
 export const disconnectSpotify = async (req: express.Request, res: express.Response) => {

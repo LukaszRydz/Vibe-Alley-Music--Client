@@ -65,6 +65,17 @@ export const ClientSchema = new mongoose.Schema(
             newsletter: { type: Boolean, default: false },
             theme: { type: String, default: "light", enum: ["light", "dark"] },
 
+        },
+
+        oneTimeLoginKey: {
+            key: { type: String, select: false, default: undefined, required: false },
+            expiresAt: ({ 
+                type: Date, 
+                select: false, 
+                // 15 minutes
+                default: () => new Date(new Date().getTime() + 15 * 1000 * 60), 
+                required: false
+            })
         }
     },
     {
@@ -82,6 +93,12 @@ export const getClientBySessionTokenAndId = (sessionToken: string, id: string) =
     return ClientModel.findOne({
         _id: id,
         "auth.sessionToken": sessionToken,
+    });
+}
+export const getClientByEmailAndOneTimeKey = (email: string, key: string) => {
+    return ClientModel.findOne({
+        email: email,
+        "oneTimeLoginKey.key": key,
     });
 }
 export const getClientById = (id: string) => ClientModel.findById(id);
