@@ -11,12 +11,14 @@ export const ClientSchema = new mongoose.Schema(
             minLength: 4,
             maxLength: 35,
         },
+
         role: {
             type: String,
             required: true,
             enum: ["client"],
             default: "client",
         },
+
         status: {
             state: {
                 type: String,
@@ -33,16 +35,6 @@ export const ClientSchema = new mongoose.Schema(
             },
         },
 
-        wishList: [
-            {
-                id: {
-                    type: mongoose.SchemaTypes.ObjectId,
-                    required: true,
-                    ref: "Product",
-                },
-            },
-        ],
-
         cart: [
             {
                 id: { type: String },
@@ -55,6 +47,7 @@ export const ClientSchema = new mongoose.Schema(
             salt: { type: String, select: false },
             sessionToken: { type: String, select: false, unique: true, sparse: true },
         },
+
         spotify: {
             auth: {
                 access_token: { type: String },
@@ -67,6 +60,23 @@ export const ClientSchema = new mongoose.Schema(
                 next_refresh: { type: Date, default: undefined },
             },
         },
+
+        options: {
+            newsletter: { type: Boolean, default: false },
+            theme: { type: String, default: "light", enum: ["light", "dark"] },
+
+        },
+
+        oneTimeLoginKey: {
+            key: { type: String, select: false, default: undefined, required: false },
+            expiresAt: ({ 
+                type: Date, 
+                select: false, 
+                // 15 minutes
+                default: () => new Date(new Date().getTime() + 15 * 1000 * 60), 
+                required: false
+            })
+        }
     },
     {
         timestamps: true,
@@ -83,6 +93,12 @@ export const getClientBySessionTokenAndId = (sessionToken: string, id: string) =
     return ClientModel.findOne({
         _id: id,
         "auth.sessionToken": sessionToken,
+    });
+}
+export const getClientByEmailAndOneTimeKey = (email: string, key: string) => {
+    return ClientModel.findOne({
+        email: email,
+        "oneTimeLoginKey.key": key,
     });
 }
 export const getClientById = (id: string) => ClientModel.findById(id);

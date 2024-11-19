@@ -16,6 +16,7 @@ export const generateJWTCookie = (res: express.Response, payload: object) => {
 
 export const deleteJWTCookie = (res: express.Response) => {
     res.clearCookie(JWT.COOKIE_NAME);
+    res.header(`${JWT.COOKIE_NAME}_deleted`, 'true');
 }
 
 export interface IJWT {
